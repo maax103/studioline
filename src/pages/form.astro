@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { HomePage } from '../react/pages/HomePage';
+import { ProjectFormPage } from '../react/pages/ProjectFormPage'
 
 const currentPath = Astro.params.path;
 
@@ -9,5 +9,5 @@ const currentPath = Astro.params.path;
 ---
 
 <Layout>
-	<HomePage currentPath={currentPath ?? ''} client:load />
+	<ProjectFormPage client:load />
 </Layout>

@@ -1,0 +1,26 @@
+---
+import { MantineProvider } from "@mantine/core";
+import { ProjectDetailsWrapper } from "../../react/pages/ProjectDetailsWrapper";
+import { theme } from "../../theme";
+import { ProjectsProvider } from "../../react/contexts/ProjectsContext";
+import Layout from "../../layouts/Layout.astro";
+
+export function getStaticPaths() {
+  const projects = import.meta.glob("../../react/data/projects/*.ts");
+
+  if (!projects) {
+    return [];
+  }
+
+  return Object.keys(projects).map((path) => {
+    const id = path.split("/").pop()?.replace(".ts", "");
+    return { params: { id } };
+  });
+}
+const { id } = Astro.params;
+const currentPath = Astro.url.pathname;
+---
+
+<Layout>
+  <ProjectDetailsWrapper id={id as string} currentPath={currentPath} client:load />
+</Layout>
