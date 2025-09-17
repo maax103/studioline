@@ -10,30 +10,20 @@ import {
   ActionIcon,
 } from '@mantine/core';
 import {
-  // IconBrandWhatsapp,
   IconBrandInstagram,
   IconMail,
 } from '@tabler/icons-react';
 import { useScrollToSection } from '../../hooks';
 
-export function Footer({currentPath} : {currentPath: string}) {
+export function Footer({ currentPath }: { currentPath: string }) {
   const shouldRenderNavigation = !currentPath.startsWith('/projeto/');
   const currentYear = new Date().getFullYear();
   const scrollToSection = useScrollToSection();
 
   const contactInfo = {
     email: 'contato@studioline.com.br',
-    // whatsapp: '+55 47 9 9172-8142',
     instagram: '@studiolinedetalhamentos',
   };
-
-  // const handleWhatsAppClick = () => {
-  //   const message = encodeURIComponent(
-  //     'Olá! Gostaria de saber mais sobre os serviços da Studio Line.'
-  //   );
-  //   const phoneNumber = contactInfo.whatsapp.replace(/\D/g, '');
-  //   window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
-  // };
 
   const handleEmailClick = () => {
     window.open(`mailto:${contactInfo.email}`, '_blank');
@@ -59,12 +49,7 @@ export function Footer({currentPath} : {currentPath: string}) {
               <Text size="xl" fw={600} c="sage.6">
                 Studio Line
               </Text>
-              {/* <Text size="sm" c="neutral.6" lh={1.6}>
-                Escritório de arquitetura especializado em projetos residenciais
-                e comerciais. Transformamos ideias em espaços únicos e
-                funcionais.
-              </Text> */}
-               <Text size="sm" c="neutral.6" lh={1.6}>
+              <Text size="sm" c="neutral.6" lh={1.6}>
                 Sua essência é nossa arquitetura.
               </Text>
             </Stack>
@@ -169,30 +154,6 @@ export function Footer({currentPath} : {currentPath: string}) {
                     {contactInfo.email}
                   </Anchor>
                 </Group>
-
-                {/* <Group gap="xs">
-                  <ActionIcon
-                    variant="subtle"
-                    color="sage"
-                    size="sm"
-                    onClick={handleWhatsAppClick}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <IconBrandWhatsapp size={16} />
-                  </ActionIcon>
-                  <Anchor
-                    onClick={handleWhatsAppClick}
-                    style={{
-                      textDecoration: 'none',
-                      color: 'var(--mantine-color-neutral-6)',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    {contactInfo.whatsapp}
-                  </Anchor>
-                </Group> */}
-
                 <Group gap="xs">
                   <ActionIcon
                     variant="subtle"
@@ -228,24 +189,6 @@ export function Footer({currentPath} : {currentPath: string}) {
             reservados.
           </Text>
           <Group gap="md">
-            {/* <ActionIcon
-              variant="subtle"
-              color="sage"
-              size="lg"
-              onClick={handleWhatsAppClick}
-              style={{ cursor: 'pointer' }}
-            >
-              <IconBrandWhatsapp size={20} />
-            </ActionIcon> */}
-            {/* <ActionIcon
-              variant="subtle"
-              color="blush"
-              size="lg"
-              onClick={handleInstagramClick}
-              style={{ cursor: 'pointer' }}
-            >
-              <IconBrandInstagram size={20} />
-            </ActionIcon> */}
           </Group>
         </Group>
       </Container>
