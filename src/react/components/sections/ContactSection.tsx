@@ -11,6 +11,7 @@ import {
 } from '@mantine/core';
 import {
   IconBrandInstagram,
+  IconListDetails,
   IconMail,
 } from '@tabler/icons-react';
 
@@ -25,14 +26,6 @@ export function ContactSection() {
     phone: '+55 11 3333-4444',
   };
 
-  // const handleWhatsAppClick = () => {
-  //   const message = encodeURIComponent(
-  //     'Olá! Gostaria de saber mais sobre os serviços da Studio Line Arquitetura.'
-  //   );
-  //   const phoneNumber = contactInfo.whatsapp.replace(/\D/g, '');
-  //   window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
-  // };
-
   const handleEmailClick = () => {
     window.open(`mailto:${contactInfo.email}`, '_blank');
   };
@@ -40,10 +33,6 @@ export function ContactSection() {
   const handleInstagramClick = () => {
     window.open('https://instagram.com/studiolinedetalhamentos', '_blank');
   };
-
-  // const handlePhoneClick = () => {
-  //   window.open(`tel:${contactInfo.phone}`, '_blank');
-  // };
 
   return (
     <Box component="section" id="contact" py="xl" bg="white">
@@ -63,8 +52,9 @@ export function ContactSection() {
 
           {/* Contact Cards */}
           <Grid gutter="xl" mt="md">
-            {/* WhatsApp Card */}
-            {/* <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+
+           {/* Phone Card */}
+            <Grid.Col span={{ base: 12 }}>
               <Card
                 shadow="sm"
                 padding="xl"
@@ -75,7 +65,7 @@ export function ContactSection() {
                   transition: 'all 0.2s ease',
                   border: '1px solid var(--mantine-color-neutral-2)',
                 }}
-                onClick={handleWhatsAppClick}
+                onClick={() => {window.open(import.meta.env.PUBLIC_FORM_URL, '_blank')}}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
                   e.currentTarget.style.boxShadow =
@@ -89,26 +79,26 @@ export function ContactSection() {
                 <Stack align="center" gap="md">
                   <ActionIcon
                     variant="light"
-                    color="sage"
+                    color="gray"
                     size="xl"
                     radius="xl"
                   >
-                    <IconBrandWhatsapp size={24} />
+                    <IconListDetails size={24} />
                   </ActionIcon>
                   <Stack align="center" gap="xs">
                     <Text fw={600} c="neutral.8">
-                      WhatsApp
+                      Faça um orçamento sem compromisso
                     </Text>
                     <Text size="sm" c="neutral.6" ta="center">
-                      {contactInfo.whatsapp}
+                      Nossa equipe entrará em contato com você o mais breve possível
                     </Text>
                     <Text size="xs" c="sage.6" ta="center">
-                      Resposta rápida
+                      {/* Horário comercial */}
                     </Text>
                   </Stack>
                 </Stack>
               </Card>
-            </Grid.Col> */}
+            </Grid.Col>
 
             {/* Email Card */}
             <Grid.Col span={{ base: 12, sm: 6, md: 6 }}>
@@ -157,53 +147,6 @@ export function ContactSection() {
               </Card>
             </Grid.Col>
 
-            {/* Phone Card */}
-            {/* <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-              <Card
-                shadow="sm"
-                padding="xl"
-                radius="lg"
-                style={{
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  border: '1px solid var(--mantine-color-neutral-2)',
-                }}
-                onClick={handlePhoneClick}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow =
-                    '0 8px 25px rgba(0,0,0,0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                }}
-              >
-                <Stack align="center" gap="md">
-                  <ActionIcon
-                    variant="light"
-                    color="sage"
-                    size="xl"
-                    radius="xl"
-                  >
-                    <IconPhone size={24} />
-                  </ActionIcon>
-                  <Stack align="center" gap="xs">
-                    <Text fw={600} c="neutral.8">
-                      Telefone
-                    </Text>
-                    <Text size="sm" c="neutral.6" ta="center">
-                      {contactInfo.phone}
-                    </Text>
-                    <Text size="xs" c="sage.6" ta="center">
-                      Horário comercial
-                    </Text>
-                  </Stack>
-                </Stack>
-              </Card>
-            </Grid.Col> */}
-
             {/* Instagram Card */}
             <Grid.Col span={{ base: 12, sm: 6, md: 6 }}>
               <Card
@@ -251,36 +194,7 @@ export function ContactSection() {
               </Card>
             </Grid.Col>
           </Grid>
-
           <Divider my="xl" />
-
-          {/* Call to Action
-          <Stack align="center" gap="lg">
-            <Text ta="center" c="neutral.7" size="md" maw={500}>
-              Prefere um contato mais direto? Escolha a forma que for mais
-              conveniente para você.
-            </Text>
-            <Group gap="lg">
-              <Button
-                variant="filled"
-                color="sage"
-                size="lg"
-                leftSection={<IconBrandWhatsapp size={20} />}
-                onClick={handleWhatsAppClick}
-              >
-                Conversar no WhatsApp
-              </Button>
-              <Button
-                variant="outline"
-                color="blush"
-                size="lg"
-                leftSection={<IconMail size={20} />}
-                onClick={handleEmailClick}
-              >
-                Enviar E-mail
-              </Button>
-            </Group>
-          </Stack> */}
         </Stack>
       </Container>
     </Box>
