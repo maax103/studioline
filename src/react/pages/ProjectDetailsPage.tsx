@@ -51,6 +51,22 @@ export function ProjectDetailsPage({ id }: { id: string }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
+  const [dragDistance, setDragDistance] = useState(0);
+  const [mousePressed, setMousePressed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const nextImage = useCallback(() => {
     if (!project || !selectedImage) return;
@@ -71,13 +87,33 @@ export function ProjectDetailsPage({ id }: { id: string }) {
     setSelectedImage(project.images[prevIndex]);
   }, [project, selectedImage]);
 
-  const handleImageClick = useCallback(() => {
-    if (zoom === 1) {
-      setZoom(2);
-    } else {
-      resetZoom();
+  const handleImageClick = useCallback((e: React.MouseEvent) => {
+    // Prevent zoom if mouse was pressed down for dragging (even without movement)
+    if (mousePressed) {
+      setMousePressed(false);
+      setDragDistance(0);
+      return;
     }
-  }, [zoom]);
+    
+    // Only prevent zoom if user dragged more than 5 pixels (threshold for intentional drag)
+    if (dragDistance > 5) {
+      // Reset drag distance after checking
+      setTimeout(() => setDragDistance(0), 0);
+      return;
+    }
+    
+    if (zoom === 1) {
+      // Different initial zoom levels for mobile vs desktop
+      const initialZoom = isMobile ? 1.01 : 2;
+      setZoom(initialZoom);
+    } else {
+      // Reset position when zooming out to prevent image from disappearing
+      setZoom(1);
+      setPosition({ x: 0, y: 0 });
+    }
+    // Reset drag distance after action
+    setTimeout(() => setDragDistance(0), 0);
+  }, [zoom, dragDistance, mousePressed, isMobile]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
@@ -107,23 +143,177 @@ export function ProjectDetailsPage({ id }: { id: string }) {
         Math.pow(touch2.clientY - touch1.clientY, 2)
       );
       const scale = distance / dragStart.x;
-      setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+      setZoom(prev => {
+        const newZoom = Math.max(1, Math.min(4, prev * scale));
+        // Reset position if zooming out completely to prevent image disappearing
+        if (newZoom === 1) {
+          setPosition({ x: 0, y: 0 });
+        }
+        return newZoom;
+      });
       setDragStart({ x: distance, y: 0 });
     } else if (e.touches.length === 1 && isDragging && zoom > 1) {
-      setPosition({
-        x: e.touches[0].clientX - dragStart.x,
-        y: e.touches[0].clientY - dragStart.y
-      });
+      // Calculate new position
+      const newX = e.touches[0].clientX - dragStart.x;
+      const newY = e.touches[0].clientY - dragStart.y;
+      
+              // For mobile, use more generous panning bounds
+        if (isMobile) {
+          // On mobile when zoomed, image uses full height (100vh)
+          // For horizontal images, this means the width will be much larger than screen
+          const containerWidth = window.innerWidth;
+          const containerHeight = window.innerHeight - 60;
+          
+          // For very horizontal images at full height, allow much more horizontal panning
+          // This accounts for images that might be 2-3x wider than the screen when at full height
+          const maxOffsetX = containerWidth * zoom * 1.5; // Increased for very wide images
+          const maxOffsetY = containerHeight * zoom * 0.8; // More generous vertical movement
+          
+          const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
+          const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
+          
+          setPosition({
+            x: constrainedX,
+            y: constrainedY
+          });
+        } else {
+        // Desktop constraints (original logic)
+        const containerWidth = window.innerWidth;
+        const containerHeight = window.innerHeight - 100;
+        
+        const imageWidth = containerWidth * zoom;
+        const imageHeight = containerHeight * zoom;
+        
+        const maxOffsetX = (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
+        const maxOffsetY = (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
+        
+        const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
+        const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
+        
+        setPosition({
+          x: constrainedX,
+          y: constrainedY
+        });
+      }
     }
-  }, [isDragging, dragStart, zoom]);
+  }, [isDragging, dragStart, zoom, isMobile]);
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
   }, []);
 
+  // Mouse event handlers for desktop
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setHasDragged(false);
+      setDragDistance(0);
+      // Only set mousePressed when we actually start dragging, not on every mouse down
+      setDragStart({ 
+        x: e.clientX - position.x, 
+        y: e.clientY - position.y 
+      });
+      e.preventDefault();
+    }
+  }, [zoom, position]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      // Calculate distance moved from start position
+      const deltaX = e.clientX - (dragStart.x + position.x);
+      const deltaY = e.clientY - (dragStart.y + position.y);
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      
+      setDragDistance(distance);
+      
+      // Set mousePressed when we actually start moving (indicating intent to drag)
+      if (distance > 1) {
+        setMousePressed(true);
+      }
+      
+      // Only start actual dragging if moved more than threshold
+      if (distance > 5) {
+        setHasDragged(true);
+        
+        // Calculate new position
+        const newX = e.clientX - dragStart.x;
+        const newY = e.clientY - dragStart.y;
+        
+        // Different constraints for mobile vs desktop
+        if (isMobile && zoom > 1) {
+          // Mobile: Image uses full height, allow horizontal panning for wide images
+          const containerWidth = window.innerWidth;
+          const containerHeight = window.innerHeight - 60;
+          
+          // Increased horizontal bounds for very wide images
+          const maxOffsetX = containerWidth * zoom * 1.5; // Match the touch handler
+          const maxOffsetY = containerHeight * zoom * 0.9; // More generous vertical movement
+          
+          const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
+          const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
+          
+          setPosition({
+            x: constrainedX,
+            y: constrainedY
+          });
+        } else {
+          // Desktop: Original constrained panning
+          const containerWidth = window.innerWidth;
+          const containerHeight = window.innerHeight - 100;
+          
+          const imageWidth = containerWidth * zoom;
+          const imageHeight = containerHeight * zoom;
+          
+          const maxOffsetX = (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
+          const maxOffsetY = (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
+          
+          const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
+          const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
+          
+          setPosition({
+            x: constrainedX,
+            y: constrainedY
+          });
+        }
+      }
+      
+      e.preventDefault();
+    }
+  }, [isDragging, dragStart, zoom, position]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    // Don't reset mousePressed here - let the click handler check it first
+  }, []);
+
+  // Handle mouse leave to stop dragging when mouse leaves the container
+  const handleMouseLeave = useCallback(() => {
+    setIsDragging(false);
+    setMousePressed(false);
+    // Reset drag distance when mouse leaves to prevent stuck state
+    setDragDistance(0);
+  }, []);
+
+  // Wheel zoom for desktop
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(prev => {
+      const newZoom = Math.max(1, Math.min(4, prev + delta));
+      // Reset position if zooming out completely to prevent image disappearing
+      if (newZoom === 1) {
+        setPosition({ x: 0, y: 0 });
+      }
+      return newZoom;
+    });
+  }, []);
+
   const resetZoom = useCallback(() => {
     setZoom(1);
     setPosition({ x: 0, y: 0 });
+    setHasDragged(false);
+    setDragDistance(0);
+    setMousePressed(false);
   }, []);
 
   const handleCloseImage = useCallback(() => {
@@ -476,26 +666,35 @@ export function ProjectDetailsPage({ id }: { id: string }) {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              cursor: zoom > 1 ? 'grab' : 'pointer',
+              cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
               touchAction: 'none'
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onWheel={handleWheel}
+            onClick={handleImageClick}
           >
             <Image
               src={selectedImage}
               alt={`${project.title} - Imagem`}
-              onClick={handleImageClick}
               style={{
                 borderRadius: "8px",
                 transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
                 transition: isDragging ? 'none' : 'transform 0.3s ease',
-                maxWidth: '100%',
-                maxHeight: '100%',
+                // On mobile when zoomed (even at lower levels), use full height and allow horizontal panning
+                width: zoom > 1 && isMobile ? 'auto' : '100%',
+                height: zoom > 1 && isMobile ? '100vh' : 'auto',
+                maxWidth: zoom > 1 && isMobile ? 'none' : '100%',
+                maxHeight: zoom > 1 && isMobile ? '100vh' : '100%',
+                minHeight: zoom > 1 && isMobile ? '100vh' : 'auto',
                 objectFit: 'contain',
                 userSelect: 'none',
-                pointerEvents: 'auto'
+                pointerEvents: 'none'
               }}
               fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
             />
@@ -529,17 +728,30 @@ export function ProjectDetailsPage({ id }: { id: string }) {
               </Button>
             </Group>
             <Suspense fallback={<Loader />}>
-              <OrbitViewer3D
-                photo360={project.images360[0]}
-                photos360={project.images360}
-                height="100%"
-                enableZoom={true}
-                minDistance={40}
-                maxDistance={75}
+              <Box 
+                mb={16} 
                 style={{
-                  border: "2px solid #abc6ab",
+                  height: "calc(100vh - 120px)", // Use available height minus header/margins
+                  width: "calc(100vh - 120px)", // Make width equal to height
+                  maxWidth: "100%", // Prevent overflow on smaller screens
+                  margin: "0 auto", // Center the square
+                  aspectRatio: "1 / 1", // Fallback for modern browsers
                 }}
-              />
+              >
+                <OrbitViewer3D
+                  photo360={project.images360[0]}
+                  photos360={project.images360}
+                  height="100%"
+                  enableZoom={true}
+                  minDistance={40}
+                  maxDistance={75}
+                  style={{
+                    border: "2px solid #abc6ab",
+                    width: "100%",
+                    height: "100%",
+                  }}
+                />
+              </Box>
             </Suspense>
           </Flex>
         </Modal>

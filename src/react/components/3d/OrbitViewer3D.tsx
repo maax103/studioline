@@ -206,6 +206,7 @@ export function OrbitViewer3D({
     <Box
       style={{
         height,
+        width: '100%',
         borderRadius: '16px',
         overflow: 'hidden',
         border: '1px solid var(--mantine-color-neutral-2)',
