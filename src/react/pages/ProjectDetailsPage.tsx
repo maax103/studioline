@@ -47,6 +47,10 @@ export function ProjectDetailsPage({ id }: { id: string }) {
   const [modelOpen, { open, close }] = useDisclosure();
   const [isImageOpen, { open: openImage, close: closeImage }] = useDisclosure();
   const [selectedImage, setSelectedImage] = useState<Project["images"][0]>();
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const nextImage = useCallback(() => {
     if (!project || !selectedImage) return;
@@ -66,6 +70,66 @@ export function ProjectDetailsPage({ id }: { id: string }) {
       (currentIndex - 1 + project.images.length) % project.images.length;
     setSelectedImage(project.images[prevIndex]);
   }, [project, selectedImage]);
+
+  const handleImageClick = useCallback(() => {
+    if (zoom === 1) {
+      setZoom(2);
+    } else {
+      resetZoom();
+    }
+  }, [zoom]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      setDragStart({ x: distance, y: 0 });
+    } else if (e.touches.length === 1 && zoom > 1) {
+      setIsDragging(true);
+      setDragStart({ 
+        x: e.touches[0].clientX - position.x, 
+        y: e.touches[0].clientY - position.y 
+      });
+    }
+  }, [zoom, position]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      const scale = distance / dragStart.x;
+      setZoom(prev => Math.max(1, Math.min(4, prev * scale)));
+      setDragStart({ x: distance, y: 0 });
+    } else if (e.touches.length === 1 && isDragging && zoom > 1) {
+      setPosition({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y
+      });
+    }
+  }, [isDragging, dragStart, zoom]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const resetZoom = useCallback(() => {
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+  }, []);
+
+  const handleCloseImage = useCallback(() => {
+    resetZoom();
+    closeImage();
+  }, [resetZoom, closeImage]);
 
   // 3. Adicione o useEffect para controlar os eventos do teclado
   useEffect(() => {
@@ -355,7 +419,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
 
       <Modal
         opened={isImageOpen}
-        onClose={closeImage}
+        onClose={handleCloseImage}
         withCloseButton={false}
         fullScreen
       >
@@ -389,30 +453,53 @@ export function ProjectDetailsPage({ id }: { id: string }) {
               >
                 <IconArrowRight size={22} />
               </ActionIcon>
-            </Group>
 
-            <Group>
-              <ActionIcon variant="subtle" color="sage" onClick={closeImage}>
+              <ActionIcon
+                variant="subtle"
+                color="sage"
+                onClick={resetZoom}
+                aria-label="Reset zoom"
+              >
+                <IconHome size={22} />
+              </ActionIcon>
+
+              <ActionIcon variant="subtle" color="sage" onClick={handleCloseImage}>
                 <IconX size={22} />
               </ActionIcon>
             </Group>
           </Group>
 
-          <AspectRatio ratio={20 / 9} maw={"100%"}>
+          <Box
+            style={{
+              flex: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              cursor: zoom > 1 ? 'grab' : 'pointer',
+              touchAction: 'none'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <Image
               src={selectedImage}
               alt={`${project.title} - Imagem`}
+              onClick={handleImageClick}
               style={{
-                borderRadius: "30px",
-                transition: "transform 0.3s ease",
-                willChange: "transform",
-                // height: 'calc(100% - 200px)',
-                // width: '100%',
-                objectFit: "contain", // Essencial para não distorcer a imagem
+                borderRadius: "8px",
+                transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
+                transition: isDragging ? 'none' : 'transform 0.3s ease',
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                userSelect: 'none',
+                pointerEvents: 'auto'
               }}
               fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
             />
-          </AspectRatio>
+          </Box>
         </motion.div>
       </Modal>
 
