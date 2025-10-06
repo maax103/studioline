@@ -351,7 +351,6 @@ export function ProjectDetailsPage({ id }: { id: string }) {
 
   // Wheel zoom for desktop
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     
     try {

@@ -53,53 +53,6 @@ export function ContactSection() {
           {/* Contact Cards */}
           <Grid gutter="xl" mt="md">
 
-           {/* Phone Card */}
-            <Grid.Col span={{ base: 12 }}>
-              <Card
-                shadow="sm"
-                padding="xl"
-                radius="lg"
-                style={{
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  border: '1px solid var(--mantine-color-neutral-2)',
-                }}
-                onClick={() => {window.open(import.meta.env.PUBLIC_FORM_URL, '_blank')}}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow =
-                    '0 8px 25px rgba(0,0,0,0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                }}
-              >
-                <Stack align="center" gap="md">
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size="xl"
-                    radius="xl"
-                  >
-                    <IconListDetails size={24} />
-                  </ActionIcon>
-                  <Stack align="center" gap="xs">
-                    <Text fw={600} c="neutral.8">
-                      Faça um orçamento sem compromisso
-                    </Text>
-                    <Text size="sm" c="neutral.6" ta="center">
-                      Nossa equipe entrará em contato com você o mais breve possível
-                    </Text>
-                    <Text size="xs" c="sage.6" ta="center">
-                      {/* Horário comercial */}
-                    </Text>
-                  </Stack>
-                </Stack>
-              </Card>
-            </Grid.Col>
-
             {/* Email Card */}
             <Grid.Col span={{ base: 12, sm: 6, md: 6 }}>
               <Card
