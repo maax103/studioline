@@ -476,7 +476,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
           <Text c="neutral.6" ta="center">
             O projeto que você está procurando não existe ou foi removido.
           </Text>
-          <Button variant="outline" color="sage" component="a" href="/#gallery">
+          <Button variant="outline" color="sage" component="a" href={getRealPath("/#gallery")}>
             Voltar à galeria
           </Button>
         </Stack>
@@ -513,7 +513,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
   ].map((item, index) => (
     <Anchor
       key={index}
-      href={item.href}
+      href={getRealPath(item.href)}
     >
       {item.title}
     </Anchor>
@@ -535,7 +535,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
               color="sage"
               leftSection={<IconArrowLeft size={18} />}
               component="a"
-              href="/#gallery"
+              href={getRealPath("/#gallery")}
             >
               Voltar à galeria
             </Button>
