@@ -19,5 +19,5 @@ const currentPath = Astro.url.pathname;
 ---
 
 <Layout>
-  <ProjectDetailsWrapper id={id as string} currentPath={currentPath} client:load />
+  <ProjectDetailsWrapper id={id as string} currentPath={currentPath} client:only="react" />
 </Layout>

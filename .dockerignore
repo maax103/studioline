@@ -1,0 +1,10 @@
+node_modules
+.git
+.github
+.astro
+.vscode
+*.md
+.env*
+.DS_Store
+src
+public

@@ -6,5 +6,5 @@ const currentPath = Astro.params.path;
 ---
 
 <Layout>
-	<HomePage currentPath={currentPath ?? ''} client:load />
+	<HomePage currentPath={currentPath ?? ''} client:only="react" />
 </Layout>
