@@ -16,6 +16,7 @@ import {
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import type { Project } from '../../types';
+import { getRealPath } from '../../../utils/assets';
 
 interface ProjectCardProps {
   project: Project;
@@ -59,7 +60,7 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
     >
       <Card
         component='a'
-        href={`/projeto/${project.id}`}
+        href={getRealPath(`/projeto/${project.id}`)}
         shadow="sm"
         padding="0"
         radius="lg"

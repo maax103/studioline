@@ -30,7 +30,7 @@ export function Footer({ currentPath }: { currentPath: string }) {
   };
 
   const handleInstagramClick = () => {
-    window.open('https://instagram.com/studioline.arquitetura', '_blank');
+    window.open('https://instagram.com/studiolinedetalhamentos', '_blank');
   };
 
   return (

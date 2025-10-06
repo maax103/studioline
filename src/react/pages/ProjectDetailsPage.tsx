@@ -37,8 +37,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import type { Project } from "../types";
 import { OrbitViewer3D } from "../components/3d/OrbitViewer3D";
-import { theme } from "../../theme";
-import { ProjectsProvider } from "../contexts/ProjectsContext";
+import { getRealPath } from "../../utils/assets";
 
 export function ProjectDetailsPage({ id }: { id: string }) {
   const { getProjectById } = useProjects();
@@ -508,8 +507,8 @@ export function ProjectDetailsPage({ id }: { id: string }) {
   };
 
   const breadcrumbItems = [
-    { title: "Início", href: "/" },
-    { title: "Galeria", href: "/#gallery" },
+    { title: "Início", href: getRealPath("/") },
+    { title: "Galeria", href: getRealPath("/#gallery") },
     { title: project.title, href: "#" },
   ].map((item, index) => (
     <Anchor
@@ -709,19 +708,6 @@ export function ProjectDetailsPage({ id }: { id: string }) {
                 personalizado para você, com a mesma qualidade e atenção aos
                 detalhes.
               </Text>
-              <Button
-                variant="filled"
-                color="sage"
-                size="lg"
-                onClick={() => {
-                  // navigate('/');
-                  setTimeout(() => {
-                    scrollToSection("contact", { offset: 70 });
-                  }, 100);
-                }}
-              >
-                Falar com nossa equipe
-              </Button>
             </Stack>
           </Card>
         </Stack>
