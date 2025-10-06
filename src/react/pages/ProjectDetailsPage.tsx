@@ -507,8 +507,8 @@ export function ProjectDetailsPage({ id }: { id: string }) {
   };
 
   const breadcrumbItems = [
-    { title: "Início", href: getRealPath("/") },
-    { title: "Galeria", href: getRealPath("/#gallery") },
+    { title: "Início", href: "/" },
+    { title: "Galeria", href: "/#gallery" },
     { title: project.title, href: "#" },
   ].map((item, index) => (
     <Anchor
