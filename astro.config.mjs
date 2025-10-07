@@ -6,11 +6,6 @@ import react from '@astrojs/react';
 export default defineConfig({
   integrations: [react()],
   site: 'https://maax103.github.io',
-  base: '/studioline',
-  output: 'static',
-  vite: {
-    ssr: {
-      noExternal: true
-    }
-  }
+  // base: '/studioline',
+  output: 'static'
 });
