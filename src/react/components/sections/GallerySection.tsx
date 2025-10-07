@@ -52,7 +52,7 @@ export function GallerySection() {
               spacing="xl"
               style={{ marginTop: '2rem' }}
             >
-              {projects.map((project, index) => (
+              {projects.filter(project => project.state === "public").map((project, index) => (
                 <ProjectCard key={project.id} project={project} index={index} />
               ))}
             </SimpleGrid>

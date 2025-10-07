@@ -3,6 +3,7 @@ import { getRealPath } from "../../../utils/assets";
 
 const project: Project = {
   id: "minimercado",
+  state: "public",
   title: "Urban Minimarket",
   description: "Projeto de um minimercado urbano compacto, com apenas 12.5m², localizado em Brasília. O design moderno e funcional maximiza o uso do espaço, oferecendo uma experiência de compra eficiente e agradável. Ideal para áreas urbanas densas, este minimercado combina praticidade com estética contemporânea.",
   thumbnail: getRealPath("photos/urban-minimarket/V2_01.webp"),

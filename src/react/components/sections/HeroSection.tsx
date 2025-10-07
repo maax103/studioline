@@ -29,7 +29,7 @@ export function HeroSection({
   const scrollToSection = useScrollToSection();
   const prefersReducedMotion = useReducedMotion();
   const { getRandomHighlightProject } = useProjects();
-  const project = getRandomHighlightProject();
+  const project = getRandomHighlightProject(true);
 
   const handleScrollToGallery = () => {
     scrollToSection('gallery', { offset: 70 });

@@ -6,7 +6,7 @@ import { allProjects } from '../data';
 export interface ProjectsContextType {
   projects: Project[];
   getProjectById: (id: string) => Project | undefined;
-  getRandomHighlightProject: () => Project;
+  getRandomHighlightProject: (onlyPublic: boolean) => Project;
 }
 
 export const ProjectsContext = createContext<ProjectsContextType | undefined>(
@@ -25,9 +25,9 @@ export function ProjectsProvider({ children }: ProjectsProviderProps) {
   const value: ProjectsContextType = {
     projects: allProjects,
     getProjectById,
-    getRandomHighlightProject: () => {
+    getRandomHighlightProject: (onlyPublic: boolean = true) => {
       const highlightedProjects = allProjects.filter(
-        (project) => project.highlight
+        (project) => project.highlight && (!onlyPublic || project.state === "public")
       );
       const randomIndex = Math.floor(Math.random() * highlightedProjects.length);
       return highlightedProjects[randomIndex];

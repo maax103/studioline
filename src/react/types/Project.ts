@@ -1,5 +1,6 @@
 export interface Project {
   id: string; // identificador do projeto (nome unico)
+  state: 'private' | 'public';
   title: string;
   description: string;
   highlight: boolean; // indica se a imagem 360 aparece na home page
