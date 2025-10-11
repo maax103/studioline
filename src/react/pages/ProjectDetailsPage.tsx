@@ -60,9 +60,6 @@ export function ProjectDetailsPage({
   const [mousePressed, setMousePressed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [pinchCenter, setPinchCenter] = useState({ x: 0, y: 0 });
-  const [openedSections, setOpenedSections] = useState<Record<string, boolean>>(
-    {}
-  );
 
   // Check if device is mobile
   useEffect(() => {
@@ -89,17 +86,12 @@ export function ProjectDetailsPage({
     }, {} as Record<string, GalleryImage[]>);
   }, [project?.gallery]);
 
-  // Initialize opened sections (all sections open by default)
-  useEffect(() => {
-    if (project?.gallery && Object.keys(openedSections).length === 0) {
-      const sections = Object.keys(imagesBySection);
-      const initialState: Record<string, boolean> = {};
-      sections.forEach((section, index) => {
-        initialState[section] = true; // All sections open by default
-      });
-      setOpenedSections(initialState);
-    }
-  }, [project?.gallery, imagesBySection, openedSections]);
+  const [openedSections, setOpenedSections] = useState<Record<string, boolean>>(
+    Object.keys(imagesBySection).reduce((acc, section) => {
+        acc[section] = true
+        return acc
+      }, {} as Record<string, boolean>)
+    );
 
   const toggleSection = (section: string) => {
     setOpenedSections((prev) => ({
@@ -697,7 +689,6 @@ export function ProjectDetailsPage({
               {project.images360 && (
                 <Button
                   variant="filled"
-                  color={getCategoryColor(project.category)}
                   leftSection={<IconView360Arrow size={18} />}
                   onClick={handle3DViewClick}
                 >
@@ -733,8 +724,7 @@ export function ProjectDetailsPage({
                   onClick={() => toggleSection(section)}
                 >
                   <Title order={4} c="neutral.8" size="lg">
-                    {section} ({images.length}{" "}
-                    {images.length === 1 ? "imagem" : "imagens"})
+                    {section} ({images.length})
                   </Title>
                   <ActionIcon
                     variant="subtle"
