@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:netlify": "astro build --config ./astro.config.netlify.mjs",
     "build:local": "astro build --config ./astro.config.local.mjs",
     "preview": "astro preview",
     "astro": "astro"
