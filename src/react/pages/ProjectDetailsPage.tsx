@@ -47,7 +47,6 @@ export function ProjectDetailsPage({
 }) {
   const { getProjectById } = useProjects();
   const project = id ? getProjectById(id) : undefined;
-  const scrollToSection = useScrollToSection();
   const [modelOpen, { open, close }] = useDisclosure();
   const [isImageOpen, { open: openImage, close: closeImage }] = useDisclosure();
   const [selectedImage, setSelectedImage] = useState<GalleryImage>();
@@ -715,11 +714,10 @@ export function ProjectDetailsPage({
                     cursor: "pointer",
                     padding: "12px 16px",
                     borderRadius: "8px",
-                    backgroundColor: openedSections[section]
-                      ? "#f8f9fa"
-                      : "#ffffff",
+                    backgroundColor: "#ffffff",
                     border: "1px solid #e9ecef",
                     transition: "all 0.2s ease",
+                    userSelect: "none",
                   }}
                   onClick={() => toggleSection(section)}
                 >
