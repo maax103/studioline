@@ -1,9 +1,9 @@
 ---
-import { ProjectDetailsWrapper } from "../../react/pages/ProjectDetailsWrapper";
-import Layout from "../../layouts/Layout.astro";
+import { ProjectDetailsWrapper } from "../../../react/pages/ProjectDetailsWrapper";
+import Layout from "../../../layouts/Layout.astro";
 
 export function getStaticPaths() {
-  const projects = import.meta.glob("../../react/data/projects/*.tsx");
+  const projects = import.meta.glob("../../../react/data/projects/*.tsx");
 
   if (!projects) {
     return [];
