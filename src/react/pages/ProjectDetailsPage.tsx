@@ -39,7 +39,13 @@ import type { Project } from "../types";
 import { OrbitViewer3D } from "../components/3d/OrbitViewer3D";
 import { getRealPath } from "../../utils/assets";
 
-export function ProjectDetailsPage({ id }: { id: string }) {
+export function ProjectDetailsPage({
+  id,
+  isEmbed,
+}: {
+  id: string;
+  isEmbed: boolean;
+}) {
   const { getProjectById } = useProjects();
   const project = id ? getProjectById(id) : undefined;
   const scrollToSection = useScrollToSection();
@@ -61,11 +67,11 @@ export function ProjectDetailsPage({ id }: { id: string }) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const nextImage = useCallback(() => {
@@ -87,253 +93,308 @@ export function ProjectDetailsPage({ id }: { id: string }) {
     setSelectedImage(project.images[prevIndex]);
   }, [project, selectedImage]);
 
-  const handleImageClick = useCallback((e: React.MouseEvent) => {
-    // Prevent zoom if mouse was pressed down for dragging (even without movement)
-    if (mousePressed) {
-      setMousePressed(false);
-      setDragDistance(0);
-      return;
-    }
-    
-    // Only prevent zoom if user dragged more than 5 pixels (threshold for intentional drag)
-    if (dragDistance > 5) {
-      // Reset drag distance after checking
-      setTimeout(() => setDragDistance(0), 0);
-      return;
-    }
-    
-    if (zoom === 1) {
-      // Different initial zoom levels for mobile vs desktop
-      const initialZoom = isMobile ? 1.01 : 2;
-      setZoom(initialZoom);
-    } else {
-      // Reset position when zooming out to prevent image from disappearing
-      setZoom(1);
-      setPosition({ x: 0, y: 0 });
-    }
-    // Reset drag distance after action
-    setTimeout(() => setDragDistance(0), 0);
-  }, [zoom, dragDistance, mousePressed, isMobile]);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + 
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      
-      // Calculate center of pinch gesture relative to container
-      const rect = e.currentTarget.getBoundingClientRect();
-      const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
-      const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
-      setPinchCenter({ x: centerX, y: centerY });
-      
-      setDragStart({ x: distance, y: 0 });
-    } else if (e.touches.length === 1 && zoom > 1) {
-      setIsDragging(true);
-      setDragStart({ 
-        x: e.touches[0].clientX - position.x, 
-        y: e.touches[0].clientY - position.y 
-      });
-    }
-  }, [zoom, position]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    if (e.touches.length === 2) {
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + 
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      const scale = distance / dragStart.x;
-      const currentZoom = zoom;
-      const newZoom = Math.max(1, Math.min(4, currentZoom * scale));
-      
-      // Reset position if zooming out completely to prevent image disappearing
-      if (newZoom === 1) {
-        setZoom(1);
-        setPosition({ x: 0, y: 0 });
-        setDragStart({ x: distance, y: 0 });
+  const handleImageClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Prevent zoom if mouse was pressed down for dragging (even without movement)
+      if (mousePressed) {
+        setMousePressed(false);
+        setDragDistance(0);
         return;
       }
-      
-      // Only apply zoom-to-center logic if we have a valid pinch center and container
-      try {
-        const rect = e.currentTarget?.getBoundingClientRect();
-        if (rect && pinchCenter.x !== undefined && pinchCenter.y !== undefined) {
-          // Get the current transform values
-          const currentPos = position;
-          
-          // Calculate the pinch center position in the image coordinate system
-          const imageX = (pinchCenter.x - rect.width / 2 - currentPos.x) / currentZoom;
-          const imageY = (pinchCenter.y - rect.height / 2 - currentPos.y) / currentZoom;
-          
-          // Calculate where this point should be after the new zoom
-          const newImageX = imageX * newZoom;
-          const newImageY = imageY * newZoom;
-          
-          // Calculate the new pan position to keep the pinch center fixed
-          const newPanX = pinchCenter.x - rect.width / 2 - newImageX;
-          const newPanY = pinchCenter.y - rect.height / 2 - newImageY;
-          
-          // Apply mobile constraints
-          let constrainedX = newPanX;
-          let constrainedY = newPanY;
-          
-          if (isMobile && newZoom > 1) {
-            const containerWidth = rect.width;
-            const containerHeight = rect.height;
-            const maxOffsetX = containerWidth * newZoom * 1.5;
-            const maxOffsetY = containerHeight * newZoom * 0.9;
-            
-            constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newPanX));
-            constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newPanY));
+
+      // Only prevent zoom if user dragged more than 5 pixels (threshold for intentional drag)
+      if (dragDistance > 5) {
+        // Reset drag distance after checking
+        setTimeout(() => setDragDistance(0), 0);
+        return;
+      }
+
+      if (zoom === 1) {
+        // Different initial zoom levels for mobile vs desktop
+        const initialZoom = isMobile ? 1.01 : 2;
+        setZoom(initialZoom);
+      } else {
+        // Reset position when zooming out to prevent image from disappearing
+        setZoom(1);
+        setPosition({ x: 0, y: 0 });
+      }
+      // Reset drag distance after action
+      setTimeout(() => setDragDistance(0), 0);
+    },
+    [zoom, dragDistance, mousePressed, isMobile]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+
+        // Calculate center of pinch gesture relative to container
+        const rect = e.currentTarget.getBoundingClientRect();
+        const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+        const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+        setPinchCenter({ x: centerX, y: centerY });
+
+        setDragStart({ x: distance, y: 0 });
+      } else if (e.touches.length === 1 && zoom > 1) {
+        setIsDragging(true);
+        setDragStart({
+          x: e.touches[0].clientX - position.x,
+          y: e.touches[0].clientY - position.y,
+        });
+      }
+    },
+    [zoom, position]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        const scale = distance / dragStart.x;
+        const currentZoom = zoom;
+        const newZoom = Math.max(1, Math.min(4, currentZoom * scale));
+
+        // Reset position if zooming out completely to prevent image disappearing
+        if (newZoom === 1) {
+          setZoom(1);
+          setPosition({ x: 0, y: 0 });
+          setDragStart({ x: distance, y: 0 });
+          return;
+        }
+
+        // Only apply zoom-to-center logic if we have a valid pinch center and container
+        try {
+          const rect = e.currentTarget?.getBoundingClientRect();
+          if (
+            rect &&
+            pinchCenter.x !== undefined &&
+            pinchCenter.y !== undefined
+          ) {
+            // Get the current transform values
+            const currentPos = position;
+
+            // Calculate the pinch center position in the image coordinate system
+            const imageX =
+              (pinchCenter.x - rect.width / 2 - currentPos.x) / currentZoom;
+            const imageY =
+              (pinchCenter.y - rect.height / 2 - currentPos.y) / currentZoom;
+
+            // Calculate where this point should be after the new zoom
+            const newImageX = imageX * newZoom;
+            const newImageY = imageY * newZoom;
+
+            // Calculate the new pan position to keep the pinch center fixed
+            const newPanX = pinchCenter.x - rect.width / 2 - newImageX;
+            const newPanY = pinchCenter.y - rect.height / 2 - newImageY;
+
+            // Apply mobile constraints
+            let constrainedX = newPanX;
+            let constrainedY = newPanY;
+
+            if (isMobile && newZoom > 1) {
+              const containerWidth = rect.width;
+              const containerHeight = rect.height;
+              const maxOffsetX = containerWidth * newZoom * 1.5;
+              const maxOffsetY = containerHeight * newZoom * 0.9;
+
+              constrainedX = Math.max(
+                -maxOffsetX,
+                Math.min(maxOffsetX, newPanX)
+              );
+              constrainedY = Math.max(
+                -maxOffsetY,
+                Math.min(maxOffsetY, newPanY)
+              );
+            }
+
+            setZoom(newZoom);
+            setPosition({ x: constrainedX, y: constrainedY });
+          } else {
+            // Fallback if pinch center is not available
+            setZoom(newZoom);
           }
-          
-          setZoom(newZoom);
-          setPosition({ x: constrainedX, y: constrainedY });
-        } else {
-          // Fallback if pinch center is not available
+        } catch (error) {
+          // Fallback: just update zoom without position adjustment
+          console.warn("Pinch zoom position adjustment failed:", error);
           setZoom(newZoom);
         }
-      } catch (error) {
-        // Fallback: just update zoom without position adjustment
-        console.warn('Pinch zoom position adjustment failed:', error);
-        setZoom(newZoom);
-      }
-      setDragStart({ x: distance, y: 0 });
-    } else if (e.touches.length === 1 && isDragging && zoom > 1) {
-      // Calculate new position
-      const newX = e.touches[0].clientX - dragStart.x;
-      const newY = e.touches[0].clientY - dragStart.y;
-      
-              // For mobile, use more generous panning bounds
+        setDragStart({ x: distance, y: 0 });
+      } else if (e.touches.length === 1 && isDragging && zoom > 1) {
+        // Calculate new position
+        const newX = e.touches[0].clientX - dragStart.x;
+        const newY = e.touches[0].clientY - dragStart.y;
+
+        // For mobile, use more generous panning bounds
         if (isMobile) {
           // On mobile when zoomed, image uses full height (100vh)
           // For horizontal images, this means the width will be much larger than screen
           const containerWidth = window.innerWidth;
           const containerHeight = window.innerHeight - 60;
-          
+
           // For very horizontal images at full height, allow much more horizontal panning
           // This accounts for images that might be 2-3x wider than the screen when at full height
           const maxOffsetX = containerWidth * zoom * 1.5; // Increased for very wide images
           const maxOffsetY = containerHeight * zoom * 0.8; // More generous vertical movement
-          
-          const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
-          const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
-          
+
+          const constrainedX = Math.max(
+            -maxOffsetX,
+            Math.min(maxOffsetX, newX)
+          );
+          const constrainedY = Math.max(
+            -maxOffsetY,
+            Math.min(maxOffsetY, newY)
+          );
+
           setPosition({
             x: constrainedX,
-            y: constrainedY
+            y: constrainedY,
           });
         } else {
-        // Desktop constraints (original logic)
-        const containerWidth = window.innerWidth;
-        const containerHeight = window.innerHeight - 100;
-        
-        const imageWidth = containerWidth * zoom;
-        const imageHeight = containerHeight * zoom;
-        
-        const maxOffsetX = (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
-        const maxOffsetY = (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
-        
-        const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
-        const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
-        
-        setPosition({
-          x: constrainedX,
-          y: constrainedY
-        });
+          // Desktop constraints (original logic)
+          const containerWidth = window.innerWidth;
+          const containerHeight = window.innerHeight - 100;
+
+          const imageWidth = containerWidth * zoom;
+          const imageHeight = containerHeight * zoom;
+
+          const maxOffsetX =
+            (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
+          const maxOffsetY =
+            (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
+
+          const constrainedX = Math.max(
+            -maxOffsetX,
+            Math.min(maxOffsetX, newX)
+          );
+          const constrainedY = Math.max(
+            -maxOffsetY,
+            Math.min(maxOffsetY, newY)
+          );
+
+          setPosition({
+            x: constrainedX,
+            y: constrainedY,
+          });
+        }
       }
-    }
-  }, [isDragging, dragStart, zoom, isMobile]);
+    },
+    [isDragging, dragStart, zoom, isMobile]
+  );
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
   }, []);
 
   // Mouse event handlers for desktop
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (zoom > 1) {
-      setIsDragging(true);
-      setHasDragged(false);
-      setDragDistance(0);
-      // Only set mousePressed when we actually start dragging, not on every mouse down
-      setDragStart({ 
-        x: e.clientX - position.x, 
-        y: e.clientY - position.y 
-      });
-      e.preventDefault();
-    }
-  }, [zoom, position]);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (zoom > 1) {
+        setIsDragging(true);
+        setHasDragged(false);
+        setDragDistance(0);
+        // Only set mousePressed when we actually start dragging, not on every mouse down
+        setDragStart({
+          x: e.clientX - position.x,
+          y: e.clientY - position.y,
+        });
+        e.preventDefault();
+      }
+    },
+    [zoom, position]
+  );
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging && zoom > 1) {
-      // Calculate distance moved from start position
-      const deltaX = e.clientX - (dragStart.x + position.x);
-      const deltaY = e.clientY - (dragStart.y + position.y);
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      
-      setDragDistance(distance);
-      
-      // Set mousePressed when we actually start moving (indicating intent to drag)
-      if (distance > 1) {
-        setMousePressed(true);
-      }
-      
-      // Only start actual dragging if moved more than threshold
-      if (distance > 5) {
-        setHasDragged(true);
-        
-        // Calculate new position
-        const newX = e.clientX - dragStart.x;
-        const newY = e.clientY - dragStart.y;
-        
-        // Different constraints for mobile vs desktop
-        if (isMobile && zoom > 1) {
-          // Mobile: Image uses full height, allow horizontal panning for wide images
-          const containerWidth = window.innerWidth;
-          const containerHeight = window.innerHeight - 60;
-          
-          // Increased horizontal bounds for very wide images
-          const maxOffsetX = containerWidth * zoom * 1.5; // Match the touch handler
-          const maxOffsetY = containerHeight * zoom * 0.9; // More generous vertical movement
-          
-          const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
-          const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
-          
-          setPosition({
-            x: constrainedX,
-            y: constrainedY
-          });
-        } else {
-          // Desktop: Original constrained panning
-          const containerWidth = window.innerWidth;
-          const containerHeight = window.innerHeight - 100;
-          
-          const imageWidth = containerWidth * zoom;
-          const imageHeight = containerHeight * zoom;
-          
-          const maxOffsetX = (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
-          const maxOffsetY = (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
-          
-          const constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newX));
-          const constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newY));
-          
-          setPosition({
-            x: constrainedX,
-            y: constrainedY
-          });
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (isDragging && zoom > 1) {
+        // Calculate distance moved from start position
+        const deltaX = e.clientX - (dragStart.x + position.x);
+        const deltaY = e.clientY - (dragStart.y + position.y);
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        setDragDistance(distance);
+
+        // Set mousePressed when we actually start moving (indicating intent to drag)
+        if (distance > 1) {
+          setMousePressed(true);
         }
+
+        // Only start actual dragging if moved more than threshold
+        if (distance > 5) {
+          setHasDragged(true);
+
+          // Calculate new position
+          const newX = e.clientX - dragStart.x;
+          const newY = e.clientY - dragStart.y;
+
+          // Different constraints for mobile vs desktop
+          if (isMobile && zoom > 1) {
+            // Mobile: Image uses full height, allow horizontal panning for wide images
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight - 60;
+
+            // Increased horizontal bounds for very wide images
+            const maxOffsetX = containerWidth * zoom * 1.5; // Match the touch handler
+            const maxOffsetY = containerHeight * zoom * 0.9; // More generous vertical movement
+
+            const constrainedX = Math.max(
+              -maxOffsetX,
+              Math.min(maxOffsetX, newX)
+            );
+            const constrainedY = Math.max(
+              -maxOffsetY,
+              Math.min(maxOffsetY, newY)
+            );
+
+            setPosition({
+              x: constrainedX,
+              y: constrainedY,
+            });
+          } else {
+            // Desktop: Original constrained panning
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight - 100;
+
+            const imageWidth = containerWidth * zoom;
+            const imageHeight = containerHeight * zoom;
+
+            const maxOffsetX =
+              (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
+            const maxOffsetY =
+              (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
+
+            const constrainedX = Math.max(
+              -maxOffsetX,
+              Math.min(maxOffsetX, newX)
+            );
+            const constrainedY = Math.max(
+              -maxOffsetY,
+              Math.min(maxOffsetY, newY)
+            );
+
+            setPosition({
+              x: constrainedX,
+              y: constrainedY,
+            });
+          }
+        }
+
+        e.preventDefault();
       }
-      
-      e.preventDefault();
-    }
-  }, [isDragging, dragStart, zoom, position]);
+    },
+    [isDragging, dragStart, zoom, position]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -349,83 +410,87 @@ export function ProjectDetailsPage({ id }: { id: string }) {
   }, []);
 
   // Wheel zoom for desktop
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    
-    try {
-      // Get mouse position relative to the container
-      const rect = e.currentTarget?.getBoundingClientRect();
-      if (!rect) return;
-      
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      
-      const currentZoom = zoom;
-      const newZoom = Math.max(1, Math.min(4, currentZoom + delta));
-      
-      // Reset position if zooming out completely
-      if (newZoom === 1) {
-        setZoom(1);
-        setPosition({ x: 0, y: 0 });
-        return;
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+
+      try {
+        // Get mouse position relative to the container
+        const rect = e.currentTarget?.getBoundingClientRect();
+        if (!rect) return;
+
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const currentZoom = zoom;
+        const newZoom = Math.max(1, Math.min(4, currentZoom + delta));
+
+        // Reset position if zooming out completely
+        if (newZoom === 1) {
+          setZoom(1);
+          setPosition({ x: 0, y: 0 });
+          return;
+        }
+
+        // Get the current transform values
+        const currentPos = position;
+        const zoomRatio = newZoom / currentZoom;
+
+        // Calculate the mouse position in the image coordinate system
+        // This accounts for current pan and zoom
+        const imageX = (mouseX - rect.width / 2 - currentPos.x) / currentZoom;
+        const imageY = (mouseY - rect.height / 2 - currentPos.y) / currentZoom;
+
+        // Calculate where this point should be after the new zoom
+        const newImageX = imageX * newZoom;
+        const newImageY = imageY * newZoom;
+
+        // Calculate the new pan position to keep the mouse point fixed
+        const newPanX = mouseX - rect.width / 2 - newImageX;
+        const newPanY = mouseY - rect.height / 2 - newImageY;
+
+        // Apply constraints if needed (for mobile)
+        let constrainedX = newPanX;
+        let constrainedY = newPanY;
+
+        if (isMobile && newZoom > 1) {
+          const containerWidth = rect.width;
+          const containerHeight = rect.height;
+          const maxOffsetX = containerWidth * newZoom * 1.5;
+          const maxOffsetY = containerHeight * newZoom * 0.9;
+
+          constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newPanX));
+          constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newPanY));
+        } else if (!isMobile && newZoom > 1) {
+          // Desktop constraints
+          const containerWidth = rect.width;
+          const containerHeight = rect.height;
+          const imageWidth = containerWidth * newZoom;
+          const imageHeight = containerHeight * newZoom;
+          const maxOffsetX =
+            (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
+          const maxOffsetY =
+            (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
+
+          constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newPanX));
+          constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newPanY));
+        }
+
+        // Update both zoom and position
+        setZoom(newZoom);
+        setPosition({ x: constrainedX, y: constrainedY });
+      } catch (error) {
+        console.warn("Wheel zoom failed:", error);
+        // Fallback to simple zoom without position adjustment
+        const newZoom = Math.max(1, Math.min(4, zoom + delta));
+        setZoom(newZoom);
+        if (newZoom === 1) {
+          setPosition({ x: 0, y: 0 });
+        }
       }
-      
-      // Get the current transform values
-      const currentPos = position;
-      const zoomRatio = newZoom / currentZoom;
-      
-      // Calculate the mouse position in the image coordinate system
-      // This accounts for current pan and zoom
-      const imageX = (mouseX - rect.width / 2 - currentPos.x) / currentZoom;
-      const imageY = (mouseY - rect.height / 2 - currentPos.y) / currentZoom;
-      
-      // Calculate where this point should be after the new zoom
-      const newImageX = imageX * newZoom;
-      const newImageY = imageY * newZoom;
-      
-      // Calculate the new pan position to keep the mouse point fixed
-      const newPanX = mouseX - rect.width / 2 - newImageX;
-      const newPanY = mouseY - rect.height / 2 - newImageY;
-      
-      // Apply constraints if needed (for mobile)
-      let constrainedX = newPanX;
-      let constrainedY = newPanY;
-      
-      if (isMobile && newZoom > 1) {
-        const containerWidth = rect.width;
-        const containerHeight = rect.height;
-        const maxOffsetX = containerWidth * newZoom * 1.5;
-        const maxOffsetY = containerHeight * newZoom * 0.9;
-        
-        constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newPanX));
-        constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newPanY));
-      } else if (!isMobile && newZoom > 1) {
-        // Desktop constraints
-        const containerWidth = rect.width;
-        const containerHeight = rect.height;
-        const imageWidth = containerWidth * newZoom;
-        const imageHeight = containerHeight * newZoom;
-        const maxOffsetX = (imageWidth - containerWidth) / 2 + containerWidth * 0.1;
-        const maxOffsetY = (imageHeight - containerHeight) / 2 + containerHeight * 0.1;
-        
-        constrainedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, newPanX));
-        constrainedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, newPanY));
-      }
-      
-      // Update both zoom and position
-      setZoom(newZoom);
-      setPosition({ x: constrainedX, y: constrainedY });
-      
-    } catch (error) {
-      console.warn('Wheel zoom failed:', error);
-      // Fallback to simple zoom without position adjustment
-      const newZoom = Math.max(1, Math.min(4, zoom + delta));
-      setZoom(newZoom);
-      if (newZoom === 1) {
-        setPosition({ x: 0, y: 0 });
-      }
-    }
-  }, [zoom, position, isMobile]);
+    },
+    [zoom, position, isMobile]
+  );
 
   const resetZoom = useCallback(() => {
     setZoom(1);
@@ -476,7 +541,12 @@ export function ProjectDetailsPage({ id }: { id: string }) {
           <Text c="neutral.6" ta="center">
             O projeto que você está procurando não existe ou foi removido.
           </Text>
-          <Button variant="outline" color="sage" component="a" href={getRealPath("/#gallery")}>
+          <Button
+            variant="outline"
+            color="sage"
+            component="a"
+            href={getRealPath("/#gallery")}
+          >
             Voltar à galeria
           </Button>
         </Stack>
@@ -511,10 +581,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
     { title: "Galeria", href: "/#gallery" },
     { title: project.title, href: "#" },
   ].map((item, index) => (
-    <Anchor
-      key={index}
-      href={getRealPath(item.href)}
-    >
+    <Anchor key={index} href={getRealPath(item.href)}>
       {item.title}
     </Anchor>
   ));
@@ -528,18 +595,20 @@ export function ProjectDetailsPage({ id }: { id: string }) {
       <Container size="xl" py={"xl"}>
         <Stack gap="xl">
           {/* Breadcrumbs and Back Button */}
-          <Group justify="space-between" align="center">
-            <Breadcrumbs>{breadcrumbItems}</Breadcrumbs>
-            <Button
-              variant="subtle"
-              color="sage"
-              leftSection={<IconArrowLeft size={18} />}
-              component="a"
-              href={getRealPath("/#gallery")}
-            >
-              Voltar à galeria
-            </Button>
-          </Group>
+          {!isEmbed && (
+            <Group justify="space-between" align="center">
+              <Breadcrumbs>{breadcrumbItems}</Breadcrumbs>
+              <Button
+                variant="subtle"
+                color="sage"
+                leftSection={<IconArrowLeft size={18} />}
+                component="a"
+                href={getRealPath("/#gallery")}
+              >
+                Voltar à galeria
+              </Button>
+            </Group>
+          )}
 
           {/* Project Header */}
           <Stack gap="md">
@@ -606,7 +675,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
                 </Button>
               )}
             </Group>
-              <project.longDescription />
+            <project.longDescription />
           </Stack>
 
           <Divider />
@@ -686,27 +755,29 @@ export function ProjectDetailsPage({ id }: { id: string }) {
           )}
 
           {/* Call to Action */}
-          <Card
-            padding="xl"
-            radius="lg"
-            style={{ backgroundColor: "var(--mantine-color-sage-0)" }}
-          >
-            <Stack align="center" gap="md">
-              <Group gap="xs">
-                <ActionIcon variant="light" color="sage" size="lg">
-                  <IconHome size={20} />
-                </ActionIcon>
-                <Title order={4} c="sage.7">
-                  Gostou deste projeto?
-                </Title>
-              </Group>
-              <Text ta="center" c="neutral.7" maw={500}>
-                Entre em contato conosco para desenvolvermos um projeto
-                personalizado para você, com a mesma qualidade e atenção aos
-                detalhes.
-              </Text>
-            </Stack>
-          </Card>
+          {!isEmbed && (
+            <Card
+              padding="xl"
+              radius="lg"
+              style={{ backgroundColor: "var(--mantine-color-sage-0)" }}
+            >
+              <Stack align="center" gap="md">
+                <Group gap="xs">
+                  <ActionIcon variant="light" color="sage" size="lg">
+                    <IconHome size={20} />
+                  </ActionIcon>
+                  <Title order={4} c="sage.7">
+                    Gostou deste projeto?
+                  </Title>
+                </Group>
+                <Text ta="center" c="neutral.7" maw={500}>
+                  Entre em contato conosco para desenvolvermos um projeto
+                  personalizado para você, com a mesma qualidade e atenção aos
+                  detalhes.
+                </Text>
+              </Stack>
+            </Card>
+          )}
         </Stack>
       </Container>
 
@@ -756,7 +827,11 @@ export function ProjectDetailsPage({ id }: { id: string }) {
                 <IconHome size={22} />
               </ActionIcon>
 
-              <ActionIcon variant="subtle" color="sage" onClick={handleCloseImage}>
+              <ActionIcon
+                variant="subtle"
+                color="sage"
+                onClick={handleCloseImage}
+              >
                 <IconX size={22} />
               </ActionIcon>
             </Group>
@@ -765,12 +840,12 @@ export function ProjectDetailsPage({ id }: { id: string }) {
           <Box
             style={{
               flex: 1,
-              overflow: 'hidden',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
-              touchAction: 'none'
+              overflow: "hidden",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "pointer",
+              touchAction: "none",
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -787,18 +862,21 @@ export function ProjectDetailsPage({ id }: { id: string }) {
               alt={`${project.title} - Imagem`}
               style={{
                 borderRadius: "8px",
-                transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
-                transition: isDragging ? 'none' : 'transform 0.3s ease',
+                transform: `scale(${zoom}) translate(${position.x / zoom}px, ${
+                  position.y / zoom
+                }px)`,
+                transition: isDragging ? "none" : "transform 0.3s ease",
                 // On mobile when zoomed (even at lower levels), use full height and allow horizontal panning
                 // When not zoomed, respect viewport height limits
-                width: zoom > 1 && isMobile ? 'auto' : '100%',
-                height: zoom > 1 && isMobile ? '100vh' : 'auto',
-                maxWidth: zoom > 1 && isMobile ? 'none' : '100%',
-                maxHeight: zoom > 1 && isMobile ? '100vh' : 'calc(100vh - 120px)', // Account for header on desktop
-                minHeight: zoom > 1 && isMobile ? '100vh' : 'auto',
-                objectFit: 'contain',
-                userSelect: 'none',
-                pointerEvents: 'none'
+                width: zoom > 1 && isMobile ? "auto" : "100%",
+                height: zoom > 1 && isMobile ? "100vh" : "auto",
+                maxWidth: zoom > 1 && isMobile ? "none" : "100%",
+                maxHeight:
+                  zoom > 1 && isMobile ? "100vh" : "calc(100vh - 120px)", // Account for header on desktop
+                minHeight: zoom > 1 && isMobile ? "100vh" : "auto",
+                objectFit: "contain",
+                userSelect: "none",
+                pointerEvents: "none",
               }}
               fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
             />
@@ -832,8 +910,8 @@ export function ProjectDetailsPage({ id }: { id: string }) {
               </Button>
             </Group>
             <Suspense fallback={<Loader />}>
-              <Box 
-                mb={16} 
+              <Box
+                mb={16}
                 style={{
                   height: "calc(100vh - 120px)", // Use available height minus header/margins
                   width: "calc(100vh - 120px)", // Make width equal to height

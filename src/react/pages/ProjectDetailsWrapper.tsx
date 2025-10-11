@@ -7,15 +7,17 @@ import { Footer } from "../components/layout";
 export const ProjectDetailsWrapper = ({
   id,
   currentPath,
+  isEmbed,
 }: {
   id: string;
   currentPath: string;
+  isEmbed: boolean;
 }) => {
   return (
     <MantineProvider theme={theme}>
       <ProjectsProvider>
-        <ProjectDetailsPage id={id} />
-        <Footer currentPath={currentPath} />
+        <ProjectDetailsPage id={id} isEmbed={isEmbed} />
+        {!isEmbed && <Footer currentPath={currentPath} />}
       </ProjectsProvider>
     </MantineProvider>
   );
