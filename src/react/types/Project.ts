@@ -1,15 +1,21 @@
 import type { ComponentType } from "react";
 
+export interface GalleryImage {
+  section: string;
+  path: string;
+  description: string;
+}
+
 export interface Project {
-  id: string; // identificador do projeto (nome unico)
+  id: string;
   state: 'private' | 'public';
   title: string;
   shortDescription: ComponentType;
   longDescription: ComponentType;
-  highlight: boolean; // indica se a imagem 360 aparece na home page
-  thumbnail: string; // thumbail da galeria
-  images: string[]; // imagens
-  images360?: Photo360[]; // imagens do tour 360
+  highlight: boolean;
+  thumbnail: string;
+  gallery: GalleryImage[];
+  images360?: Photo360[];
   category: 'residential' | 'commercial';
   year?: number;
   location?: string;

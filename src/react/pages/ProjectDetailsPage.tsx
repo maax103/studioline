@@ -17,8 +17,7 @@ import {
   Modal,
   Flex,
   Loader,
-  AspectRatio,
-  MantineProvider,
+  Collapse,
 } from "@mantine/core";
 import {
   IconArrowLeft,
@@ -34,8 +33,8 @@ import { motion } from "framer-motion";
 import { useProjects } from "../hooks";
 import { useScrollToSection } from "../hooks";
 import { useDisclosure } from "@mantine/hooks";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import type { Project } from "../types";
+import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
+import type { Project, GalleryImage } from "../types";
 import { OrbitViewer3D } from "../components/3d/OrbitViewer3D";
 import { getRealPath } from "../../utils/assets";
 
@@ -51,7 +50,7 @@ export function ProjectDetailsPage({
   const scrollToSection = useScrollToSection();
   const [modelOpen, { open, close }] = useDisclosure();
   const [isImageOpen, { open: openImage, close: closeImage }] = useDisclosure();
-  const [selectedImage, setSelectedImage] = useState<Project["images"][0]>();
+  const [selectedImage, setSelectedImage] = useState<GalleryImage>();
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -61,6 +60,9 @@ export function ProjectDetailsPage({
   const [mousePressed, setMousePressed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [pinchCenter, setPinchCenter] = useState({ x: 0, y: 0 });
+  const [openedSections, setOpenedSections] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Check if device is mobile
   useEffect(() => {
@@ -74,23 +76,55 @@ export function ProjectDetailsPage({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Group gallery images by section
+  const imagesBySection = useMemo(() => {
+    if (!project?.gallery) return {};
+
+    return project.gallery.reduce((acc, image) => {
+      if (!acc[image.section]) {
+        acc[image.section] = [];
+      }
+      acc[image.section].push(image);
+      return acc;
+    }, {} as Record<string, GalleryImage[]>);
+  }, [project?.gallery]);
+
+  // Initialize opened sections (all sections open by default)
+  useEffect(() => {
+    if (project?.gallery && Object.keys(openedSections).length === 0) {
+      const sections = Object.keys(imagesBySection);
+      const initialState: Record<string, boolean> = {};
+      sections.forEach((section, index) => {
+        initialState[section] = true; // All sections open by default
+      });
+      setOpenedSections(initialState);
+    }
+  }, [project?.gallery, imagesBySection, openedSections]);
+
+  const toggleSection = (section: string) => {
+    setOpenedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const nextImage = useCallback(() => {
     if (!project || !selectedImage) return;
-    const currentIndex = project.images.findIndex(
+    const currentIndex = project.gallery.findIndex(
       (image) => image === selectedImage
     );
-    const nextIndex = (currentIndex + 1) % project.images.length;
-    setSelectedImage(project.images[nextIndex]);
+    const nextIndex = (currentIndex + 1) % project.gallery.length;
+    setSelectedImage(project.gallery[nextIndex]);
   }, [project, selectedImage]);
 
   const prevImage = useCallback(() => {
     if (!project || !selectedImage) return;
-    const currentIndex = project.images.findIndex(
+    const currentIndex = project.gallery.findIndex(
       (image) => image === selectedImage
     );
     const prevIndex =
-      (currentIndex - 1 + project.images.length) % project.images.length;
-    setSelectedImage(project.images[prevIndex]);
+      (currentIndex - 1 + project.gallery.length) % project.gallery.length;
+    setSelectedImage(project.gallery[prevIndex]);
   }, [project, selectedImage]);
 
   const handleImageClick = useCallback(
@@ -685,45 +719,84 @@ export function ProjectDetailsPage({
             <Title order={3} c="neutral.8">
               Galeria de Imagens
             </Title>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 2 }} spacing="lg">
-              {project.images.map((image, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+
+            {Object.entries(imagesBySection).map(([section, images]) => (
+              <Stack key={section} gap="sm">
+                <Group
+                  justify="space-between"
+                  style={{
+                    cursor: "pointer",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    backgroundColor: openedSections[section]
+                      ? "#f8f9fa"
+                      : "#ffffff",
+                    border: "1px solid #e9ecef",
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => toggleSection(section)}
                 >
-                  <Box
+                  <Title order={4} c="neutral.8" size="lg">
+                    {section} ({images.length}{" "}
+                    {images.length === 1 ? "imagem" : "imagens"})
+                  </Title>
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
                     style={{
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                      cursor: "pointer",
+                      transform: openedSections[section]
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
                     }}
                   >
-                    <Image
-                      src={image}
-                      alt={`${project.title} - Imagem ${index + 1}`}
-                      height={500}
-                      style={{
-                        transition: "transform 0.3s ease",
-                        willChange: "transform",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "scale(1.05)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "scale(1)";
-                      }}
-                      fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
-                      onClick={() => {
-                        setSelectedImage(image);
-                        openImage();
-                      }}
-                    />
-                  </Box>
-                </motion.div>
-              ))}
-            </SimpleGrid>
+                    <IconArrowRight size={16} />
+                  </ActionIcon>
+                </Group>
+
+                <Collapse in={openedSections[section]}>
+                  <SimpleGrid cols={{ base: 1, sm: 2, md: 2 }} spacing="lg">
+                    {images.map((galleryImage, index) => (
+                      <motion.div
+                        key={`${section}-${index}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                      >
+                        <Box
+                          style={{
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Image
+                            src={galleryImage.path}
+                            alt={galleryImage.description}
+                            height={500}
+                            style={{
+                              transition: "transform 0.3s ease",
+                              willChange: "transform",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "scale(1.05)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                            // fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
+                            onClick={() => {
+                              setSelectedImage(galleryImage);
+                              openImage();
+                            }}
+                          />
+                        </Box>
+                      </motion.div>
+                    ))}
+                  </SimpleGrid>
+                </Collapse>
+              </Stack>
+            ))}
           </Stack>
 
           {/* Project Specifications */}
@@ -795,7 +868,7 @@ export function ProjectDetailsPage({
         >
           <Group justify="space-between" align="center" mb={16}>
             <Title order={3} c="neutral.8">
-              {project.title}
+              {selectedImage?.description || project.title}
             </Title>
 
             {/* Grupo para os botões de controle */}
@@ -836,7 +909,6 @@ export function ProjectDetailsPage({
               </ActionIcon>
             </Group>
           </Group>
-
           <Box
             style={{
               flex: 1,
@@ -858,8 +930,8 @@ export function ProjectDetailsPage({
             onClick={handleImageClick}
           >
             <Image
-              src={selectedImage}
-              alt={`${project.title} - Imagem`}
+              src={selectedImage?.path}
+              alt={selectedImage?.description || `${project.title} - Imagem`}
               style={{
                 borderRadius: "8px",
                 transform: `scale(${zoom}) translate(${position.x / zoom}px, ${

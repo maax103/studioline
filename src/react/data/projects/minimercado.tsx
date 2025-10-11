@@ -40,14 +40,42 @@ const project: Project = {
   longDescription: MiniMercadoLongDescription,
   thumbnail: getRealPath("photos/urban-minimarket/01.webp"),
   highlight: true,
-  images: [
-    getRealPath("photos/urban-minimarket/01.webp"),
-    getRealPath("photos/urban-minimarket/02.webp"),
-    getRealPath("photos/urban-minimarket/03.webp"),
-    getRealPath("photos/urban-minimarket/04.webp"),
-    getRealPath("photos/urban-minimarket/05.webp"),
-    getRealPath("photos/urban-minimarket/06.webp"),
-    getRealPath("photos/urban-minimarket/P.B.webp"),
+  gallery: [
+    {
+      section: "Visão externa",
+      path: getRealPath("photos/urban-minimarket/01.webp"),
+      description: "Vista geral do minimercado"
+    },
+    {
+      section: "Visão externa",
+      path: getRealPath("photos/urban-minimarket/02.webp"),
+      description: "Vista frontal do minimercado"
+    },
+    {
+      section: "Interior da loja",
+      path: getRealPath("photos/urban-minimarket/03.webp"),
+      description: "Corredor lateral com produtos"
+    },
+    {
+      section: "Interior da loja",
+      path: getRealPath("photos/urban-minimarket/04.webp"),
+      description: "Vista da entrada principal"
+    },
+    {
+      section: "Interior da loja",
+      path: getRealPath("photos/urban-minimarket/05.webp"),
+      description: "Prateleiras e organização interna"
+    },
+    {
+      section: "Interior da loja",
+      path: getRealPath("photos/urban-minimarket/06.webp"),
+      description: "Área de checkout e atendimento"
+    },
+    {
+      section: "Interior da loja",
+      path: getRealPath("photos/urban-minimarket/P.B.webp"),
+      description: "Planta baixa do projeto"
+    },
   ],
   category: "commercial",
   year: 2025,
