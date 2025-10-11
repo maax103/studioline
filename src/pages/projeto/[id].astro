@@ -3,14 +3,14 @@ import { ProjectDetailsWrapper } from "../../react/pages/ProjectDetailsWrapper";
 import Layout from "../../layouts/Layout.astro";
 
 export function getStaticPaths() {
-  const projects = import.meta.glob("../../react/data/projects/*.ts");
+  const projects = import.meta.glob("../../react/data/projects/*.tsx");
 
   if (!projects) {
     return [];
   }
 
   return Object.keys(projects).map((path) => {
-    const id = path.split("/").pop()?.replace(".ts", "");
+    const id = path.split("/").pop()?.replace(".tsx", "");
     return { params: { id } };
   });
 }

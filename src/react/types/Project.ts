@@ -1,8 +1,11 @@
+import type { ComponentType } from "react";
+
 export interface Project {
   id: string; // identificador do projeto (nome unico)
   state: 'private' | 'public';
   title: string;
-  description: string;
+  shortDescription: ComponentType;
+  longDescription: ComponentType;
   highlight: boolean; // indica se a imagem 360 aparece na home page
   thumbnail: string; // thumbail da galeria
   images: string[]; // imagens

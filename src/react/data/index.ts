@@ -2,7 +2,7 @@ import type { Project } from '../types';
 
 // 1. Vite encontra todos os arquivos .ts dentro da pasta 'projects'.
 // A opção { eager: true } faz com que os módulos sejam importados imediatamente.
-const projectModules = import.meta.glob('./projects/*.ts', { eager: true }) as Record<string, { default: Project }>;
+const projectModules = import.meta.glob('./projects/*.tsx', { eager: true }) as Record<string, { default: Project }>;
 
 // 2. O resultado de projectModules é um objeto como:
 // {

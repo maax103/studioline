@@ -149,9 +149,7 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
             <Text fw={600} size="lg" c="neutral.8" lineClamp={2}>
               {project.title}
             </Text>
-            <Text size="sm" c="neutral.6" lineClamp={3} lh={1.5}>
-              {project.description}
-            </Text>
+              <project.shortDescription />
           </Stack>
 
           <Group justify="space-between" align="center">

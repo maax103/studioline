@@ -41,7 +41,7 @@ jobs:
         run: bun install
       
       - name: Build with Astro
-        run: bun run build
+        run: bun run build --config ./astro.config.github.mjs
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

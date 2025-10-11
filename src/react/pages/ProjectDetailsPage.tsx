@@ -606,10 +606,7 @@ export function ProjectDetailsPage({ id }: { id: string }) {
                 </Button>
               )}
             </Group>
-
-            <Text size="lg" c="neutral.7" lh={1.6} maw={800}>
-              {project.description}
-            </Text>
+              <project.longDescription />
           </Stack>
 
           <Divider />
