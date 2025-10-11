@@ -277,10 +277,8 @@ export function ProjectDetailsPage({
           const containerWidth = window.innerWidth;
           const containerHeight = window.innerHeight - 60;
 
-          // For very horizontal images at full height, allow much more horizontal panning
-          // This accounts for images that might be 2-3x wider than the screen when at full height
-          const maxOffsetX = containerWidth * zoom * 1.5; // Increased for very wide images
-          const maxOffsetY = containerHeight * zoom * 0.8; // More generous vertical movement
+          const maxOffsetX = containerWidth * zoom * 2.5;
+          const maxOffsetY = containerHeight * zoom * 0.8;
 
           const constrainedX = Math.max(
             -maxOffsetX,
@@ -374,13 +372,11 @@ export function ProjectDetailsPage({
 
           // Different constraints for mobile vs desktop
           if (isMobile && zoom > 1) {
-            // Mobile: Image uses full height, allow horizontal panning for wide images
             const containerWidth = window.innerWidth;
             const containerHeight = window.innerHeight - 60;
 
-            // Increased horizontal bounds for very wide images
-            const maxOffsetX = containerWidth * zoom * 1.5; // Match the touch handler
-            const maxOffsetY = containerHeight * zoom * 0.9; // More generous vertical movement
+            const maxOffsetX = containerWidth * zoom * 1.5;
+            const maxOffsetY = containerHeight * zoom * 0.9;
 
             const constrainedX = Math.max(
               -maxOffsetX,
@@ -927,31 +923,43 @@ export function ProjectDetailsPage({
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
             onWheel={handleWheel}
-            onClick={handleImageClick}
+            onClick={handleCloseImage}
           >
-            <Image
-              src={selectedImage?.path}
-              alt={selectedImage?.description || `${project.title} - Imagem`}
+            <div
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent closing when clicking on image
+                handleImageClick(e);
+              }}
               style={{
-                borderRadius: "8px",
+                display: "inline-block",
+                maxWidth: "100%",
+                maxHeight: "100%",
                 transform: `scale(${zoom}) translate(${position.x / zoom}px, ${
                   position.y / zoom
                 }px)`,
                 transition: isDragging ? "none" : "transform 0.3s ease",
-                // On mobile when zoomed (even at lower levels), use full height and allow horizontal panning
-                // When not zoomed, respect viewport height limits
-                width: zoom > 1 && isMobile ? "auto" : "100%",
-                height: zoom > 1 && isMobile ? "100vh" : "auto",
-                maxWidth: zoom > 1 && isMobile ? "none" : "100%",
-                maxHeight:
-                  zoom > 1 && isMobile ? "100vh" : "calc(100vh - 120px)", // Account for header on desktop
-                minHeight: zoom > 1 && isMobile ? "100vh" : "auto",
-                objectFit: "contain",
-                userSelect: "none",
-                pointerEvents: "none",
               }}
-              fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
-            />
+            >
+              <Image
+                src={selectedImage?.path}
+                alt={selectedImage?.description || `${project.title} - Imagem`}
+                style={{
+                  borderRadius: "8px",
+                  // On mobile when zoomed (even at lower levels), use full height and allow horizontal panning
+                  // When not zoomed, respect viewport height limits
+                  width: zoom > 1 && isMobile ? "auto" : "100%",
+                  height: zoom > 1 && isMobile ? "100vh" : "auto",
+                  maxWidth: zoom > 1 && isMobile ? "none" : "100%",
+                  maxHeight:
+                    zoom > 1 && isMobile ? "100vh" : "calc(100vh - 120px)", // Account for header on desktop
+                  minHeight: zoom > 1 && isMobile ? "100vh" : "auto",
+                  objectFit: "contain",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                }}
+                fallbackSrc={`https://via.placeholder.com/400x250/abc6ab/ffffff?text=${project.title}`}
+              />
+            </div>
           </Box>
         </motion.div>
       </Modal>
